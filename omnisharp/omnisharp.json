@@ -1,0 +1,9 @@
+{
+    "FormattingOptions": {
+      "EnableEditorConfigSupport": true,
+      "OrganizeImports": true,
+      "WrappingPreserveSingleLine": false,
+      "WrappingKeepStatementsOnSingleLine": false,
+      "MaxLineLength": 50
+    }
+  }
