@@ -4,15 +4,14 @@ public class AlertState : StateSO
 {
     public override void OnStateEnter(EnemyController ec)
     {
-        ec.GetAlert();
+        Debug.Log("hola seen");
+        if (ec.alertCoroutine == null) ec.GetAlert();
         ec.GetPatrolRoute(ec.alertPatrolPoints, ec.lastPlayerPosition);
         ec.currentPointIndex = 0;
     }
 
     public override void OnStateExit(EnemyController ec)
     {
-        ec.Desalert();
-
     }
 
     public override void OnStateUpdate(EnemyController ec)

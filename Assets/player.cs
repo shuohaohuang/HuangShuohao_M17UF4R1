@@ -6,14 +6,10 @@ public class Player : MonoBehaviour, InputSystem_Actions.IPlayerActions, IDamage
     public Rigidbody rb;
     public float Speed;
     private InputSystem_Actions inputs;
+
     public float hp = 100000;
-    public void OnHurt(float damage)
-    {
-        hp -= damage;
-    }
     public void OnAttack(InputAction.CallbackContext context)
     {
-        Debug.Log("atacar");
 
     }
 
@@ -52,4 +48,8 @@ public class Player : MonoBehaviour, InputSystem_Actions.IPlayerActions, IDamage
         inputs.Disable();
     }
 
+    public void OnHurt(float damage)
+    {
+        hp -= damage;
+    }
 }

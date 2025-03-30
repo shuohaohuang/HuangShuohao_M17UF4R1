@@ -6,7 +6,7 @@ public class AlertCondition : ConditionSO
 {
     public override bool CheckCondition(EnemyController ec)
     {
-        return ec.remainingAlertTime > 0;
+        return ec.onAlert;
     }
 
 }

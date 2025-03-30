@@ -6,12 +6,12 @@ public class ChaseState : StateSO
 {
     public override void OnStateEnter(EnemyController ec)
     {
-        Debug.Log("chase");
     }
 
     public override void OnStateExit(EnemyController ec)
     {
         ec.GetComponent<ChaseBehaviour>().StopChasing();
+
     }
 
     public override void OnStateUpdate(EnemyController ec)

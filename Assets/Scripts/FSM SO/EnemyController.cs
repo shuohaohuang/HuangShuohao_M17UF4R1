@@ -1,5 +1,5 @@
 
-using System;
+
 using System.Collections.Generic;
 using UnityEngine;
 using System.Collections;
@@ -7,7 +7,7 @@ using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
-    public bool OnRange = false, OnAttackRange = false;
+    public bool OnRange = false, OnAttackRange = false, onAlert = false;
     public ChaseBehaviour movementBehavior;
     public Coroutine alertCoroutine;
     public float alertTime;
@@ -47,76 +47,105 @@ public class EnemyController : MonoBehaviour
                 }
             }
         }
+        ShufflePoints(route);
     }
 
     public void Attack()
     {
         if (currentCd <= 0)
         {
-
-            currentCd = cd;
-            currentAttackTime = attackTime;
             StartCoroutine(Cooldown());
             target.OnHurt(1);
-
         }
     }
 
     protected IEnumerator Cooldown()
     {
         currentCd = cd;
+        currentAttackTime = attackTime;
         while (currentCd > 0)
         {
             currentCd -= Time.deltaTime;
             currentAttackTime -= Time.deltaTime;
+
+            if (currentAttackTime < 0)
+            {
+                OnAttackRange = false;
+                //while currentAttackTime is greatter than 0 the enemy cannot move
+                //it to trigger chase state while attack is on cooldown
+                CheckEndingConditions();
+            }
             yield return null;
         }
     }
 
     protected IEnumerator Alert()
     {
-        remainingAlertTime = alertTime;
         while (remainingAlertTime > 0)
         {
             remainingAlertTime -= Time.deltaTime;
             yield return null;
         }
+        onAlert = false;
+
+        // it to trigger idle
+        CheckEndingConditions();
+
+        //desactive corroutine for next alert state 
+        Desalert();
     }
 
     public void GetAlert()
     {
-        remainingAlertTime = 0;
         alertCoroutine = StartCoroutine(Alert());
     }
+
     public void Desalert()
     {
+        remainingAlertTime = 0;
         StopCoroutine(alertCoroutine);
+        alertCoroutine = null;
     }
 
     void Awake()
     {
         GetPatrolRoute(originPatrolPoints, transform.position);
     }
-
+    void ShufflePoints(List<Vector3> list)
+    {
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = UnityEngine.Random.Range(0, n + 1);
+            Vector3 value = list[k];
+            list[k] = list[n];
+            list[n] = value;
+        }
+    }
     private void CheckRange()
     {
         Vector3 direccion = target.transform.position - transform.position;
-        Physics.Raycast(transform.position, direccion, out controlRay)
-        ;
-        Debug.Log(controlRay.collider?.gameObject?.name);
 
         //It is also compared with Ground because the raycast bugs with the attack state
         if (Physics.Raycast(transform.position, direccion, out controlRay) && (Equals(controlRay.collider.gameObject, target.gameObject) || controlRay.collider.gameObject.layer == LayerMask.NameToLayer("Ground")))
         {
 
-            Debug.DrawRay(transform.position, direccion, OnRange ? OnAttackRange ? Color.blue : Color.yellow : Color.red);
+            Debug.DrawRay(transform.position, direccion, Color.yellow);
 
             OnRange = true;
+            onAlert = false;
+            CheckEndingConditions();
+
             lastPlayerPosition = new(target.transform.position.x, transform.position.y, target.transform.position.z);
         }
         else
         {
+
             OnRange = false;
+
+            GoLastPoint();
+
         }
 
     }
@@ -125,34 +154,26 @@ public class EnemyController : MonoBehaviour
     {
         if (collision.gameObject == target.gameObject)
         {
-            if (currentAttackTime <= 0)
-            {
-                OnAttackRange = true;
 
-            }
-            else
-            {
-                OnAttackRange = false;
-            }
+            OnAttackRange = true;
+            //To active attack
             CheckEndingConditions();
-
         }
+
     }
     public void OCollisionExit(Collision collision)
     {
         OnAttackRange = false;
+        //To active chase
         CheckEndingConditions();
 
     }
 
     public void OnTriggerStay(Collider other)
     {
-        Debug.Log(other.gameObject == target.gameObject);
         if (other.gameObject == target.gameObject)
         {
             CheckRange();
-            CheckEndingConditions();
-
         }
     }
 
@@ -161,10 +182,29 @@ public class EnemyController : MonoBehaviour
         if (other.gameObject == target.gameObject)
         {
             OnRange = false;
+            GoLastPoint();
+            //To active alert, idle is not possible
             CheckEndingConditions();
         }
     }
+    public void GoLastPoint()
+    {
+        //goes to last known position of the player
 
+        if (lastPlayerPosition != Vector3.zero)
+        {
+            //counter for alert time
+            remainingAlertTime = alertTime;
+            onAlert = true;
+
+            //lastPlayerPosition != Vector3.zero for an unknown reason doesn't work properly 
+            //this can prevent previus bug
+            CheckEndingConditions();
+            //without this the enemy will chase the player even he is not hitted by raycast
+            //it still works if player leaves the detection area.
+
+        }
+    }
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))

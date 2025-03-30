@@ -1,4 +1,5 @@
 
+using System;
 using UnityEngine;
 [CreateAssetMenu(fileName = "IdleState", menuName = "StatesSO/Idle")]
 public class IdleState : StateSO
@@ -14,6 +15,7 @@ public class IdleState : StateSO
 
     public override void OnStateExit(EnemyController ec)
     {
+
     }
 
     public override void OnStateUpdate(EnemyController ec)

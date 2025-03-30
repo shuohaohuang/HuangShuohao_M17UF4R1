@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StartCondition: {fileID: 0}
   EndConditions:
+  - {fileID: 11400000, guid: f915cb9f052b06c438b4a3f1ee91146a, type: 2}
   - {fileID: 11400000, guid: f2fd800249f66f44d92c7700a61cc40c, type: 2}
   - {fileID: 11400000, guid: ce7f949247245ec42bc89f78347d7063, type: 2}
   - {fileID: 11400000, guid: 72322723348ae2a4bb1fd242175e125d, type: 2}
