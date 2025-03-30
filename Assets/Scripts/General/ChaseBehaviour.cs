@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-
 
 public class ChaseBehaviour : MonoBehaviour
 {
@@ -14,6 +11,10 @@ public class ChaseBehaviour : MonoBehaviour
     {
         _rb = GetComponent<Rigidbody>();
         agent.speed = Speed;
+
+        agent.stoppingDistance = 0.1f;
+        agent.acceleration = 20f;
+        agent.autoBraking = false;
     }
     public void Chase(Transform target, Transform self)
     {
@@ -23,7 +24,12 @@ public class ChaseBehaviour : MonoBehaviour
     public void Run(Transform target, Transform self)
     {
         agent.isStopped = false;
-        agent.SetDestination(new(-target.position.x, self.position.y, -target.position.z));
+
+        Vector3 runDirection = (self.position - target.position).normalized;
+        runDirection.y = 0;
+        Vector3 runPoint = self.position + runDirection * 1;
+
+        agent.SetDestination(runPoint);
 
     }
 

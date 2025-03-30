@@ -13,4 +13,6 @@ public class PlayerMover : MonoBehaviour
     {
         _rb.linearVelocity = 5f * new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
     }
+
+
 }

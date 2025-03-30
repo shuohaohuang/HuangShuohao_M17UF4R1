@@ -10,10 +10,11 @@ public class AttackState : StateSO
 
     public override void OnStateExit(EnemyController ec)
     {
+
     }
 
     public override void OnStateUpdate(EnemyController ec)
     {
-        // GameManager.gm.UpdateText("Te reviento a chancletaso");
+        ec.Attack();
     }
 }

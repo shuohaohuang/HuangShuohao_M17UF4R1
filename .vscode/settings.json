@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "navmesh.sln"
+    "dotnet.defaultSolution": "HuangShuohao_M17UF4R1.sln"
 }

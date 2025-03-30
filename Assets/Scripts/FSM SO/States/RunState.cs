@@ -1,14 +1,11 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 [CreateAssetMenu(fileName = "RunState", menuName = "StatesSO/Run")]
 public class RunState : StateSO
 {
     public override void OnStateEnter(EnemyController ec)
     {
-        ec.GetComponent<ChaseBehaviour>().Speed *= 3;
-        Debug.Log("HUYO");
+        ec.GetComponent<ChaseBehaviour>().Speed = 1.2f;
+
         ec.GetComponent<ChaseBehaviour>().agent.speed = ec.GetComponent<ChaseBehaviour>().Speed;
     }
 

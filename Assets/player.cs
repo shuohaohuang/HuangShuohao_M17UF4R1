@@ -1,11 +1,16 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Player : MonoBehaviour, InputSystem_Actions.IPlayerActions
+public class Player : MonoBehaviour, InputSystem_Actions.IPlayerActions, IDamageable
 {
     public Rigidbody rb;
     public float Speed;
     private InputSystem_Actions inputs;
+    public float hp = 100000;
+    public void OnHurt(float damage)
+    {
+        hp -= damage;
+    }
     public void OnAttack(InputAction.CallbackContext context)
     {
         Debug.Log("atacar");

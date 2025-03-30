@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98b45dcc392157949a2553df65626109, type: 3}
+  m_Name: AlertState
+  m_EditorClassIdentifier: 
+  StartCondition: {fileID: 11400000, guid: f915cb9f052b06c438b4a3f1ee91146a, type: 2}
+  EndConditions:
+  - {fileID: 11400000, guid: f2fd800249f66f44d92c7700a61cc40c, type: 2}

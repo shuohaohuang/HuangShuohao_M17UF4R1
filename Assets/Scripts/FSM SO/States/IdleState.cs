@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 [CreateAssetMenu(fileName = "IdleState", menuName = "StatesSO/Idle")]
 public class IdleState : StateSO
@@ -8,7 +7,8 @@ public class IdleState : StateSO
     {
         if (ec.DamagedHP != 0)
         {
-            ec.GetNewPatrolRoute();
+            ec.currentPointIndex = 0;
+            ec.GetPatrolRoute(ec.originPatrolPoints, ec.transform.position);
         }
     }
 
@@ -18,14 +18,14 @@ public class IdleState : StateSO
 
     public override void OnStateUpdate(EnemyController ec)
     {
-        if (ec.patrolPoints.Count > 0)
+        if (ec.originPatrolPoints.Count > 0)
         {
-            if ((ec.patrolPoints[ec.currentPoint] - ec.transform.position).magnitude < 1)
+            if ((ec.originPatrolPoints[ec.currentPointIndex] - ec.transform.position).magnitude < 1)
             {
-                ec.currentPoint = ec.currentPoint + 1 == ec.patrolPoints.Count ? 0 : ec.currentPoint + 1;
+                ec.currentPointIndex = ec.currentPointIndex + 1 == ec.originPatrolPoints.Count ? 0 : ec.currentPointIndex + 1;
             }
 
-            ec._chaseB.GoTo(ec.patrolPoints[ec.currentPoint], ec.transform);
+            ec.movementBehavior.GoTo(ec.originPatrolPoints[ec.currentPointIndex], ec.transform);
 
         }
     }

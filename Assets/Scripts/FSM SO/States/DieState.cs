@@ -6,6 +6,8 @@ public class DieState : StateSO
 {
     public override void OnStateEnter(EnemyController ec)
     {
+        ec.movementBehavior.agent.enabled = false;
+        ec.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
     }
 
     public override void OnStateExit(EnemyController ec)
