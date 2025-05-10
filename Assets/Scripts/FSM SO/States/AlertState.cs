@@ -4,7 +4,6 @@ public class AlertState : StateSO
 {
     public override void OnStateEnter(EnemyController ec)
     {
-        Debug.Log("hola seen");
         if (ec.alertCoroutine == null) ec.GetAlert();
         ec.GetPatrolRoute(ec.alertPatrolPoints, ec.lastPlayerPosition);
         ec.currentPointIndex = 0;

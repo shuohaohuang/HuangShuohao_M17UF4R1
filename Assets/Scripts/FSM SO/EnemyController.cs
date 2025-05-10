@@ -7,7 +7,69 @@ using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
-    public bool OnRange = false, OnAttackRange = false, onAlert = false;
+
+    [SerializeField]
+    private bool onAlert, canAttack, onAttackRange, onVisionRange, onCooldown;
+    public bool OnAlert
+    {
+        get => onAlert;
+        set
+        {
+            onAlert = value;
+
+            CheckEndingConditions();
+        }
+    }
+    public bool OnAttackRange
+    {
+        get => onAttackRange;
+        set
+        {
+            onAttackRange = value;
+            CheckEndingConditions();
+        }
+    }
+    public bool OnRange
+    {
+        get => onVisionRange;
+        set
+        {
+            onVisionRange = value;
+            if (!onVisionRange)
+                GoLastPoint();
+            CheckEndingConditions();
+        }
+    }
+    public bool CanAttack
+    {
+        get => canAttack;
+        set
+        {
+            canAttack = value;
+            CheckEndingConditions();
+        }
+    }
+
+    public int DamagedHP
+    {
+        get => damagedHP;
+        set
+        {
+            damagedHP = value;
+            CheckEndingConditions();
+        }
+    }
+
+    public bool OnCooldown
+    {
+        get => onCooldown;
+        set
+        {
+            onCooldown = value;
+            CheckEndingConditions();
+        }
+    }
+
     public ChaseBehaviour movementBehavior;
     public Coroutine alertCoroutine;
     public float alertTime;
@@ -18,13 +80,13 @@ public class EnemyController : MonoBehaviour
     public float maxPatrolDistance = 10;
     public float remainingAlertTime;
     public int currentPointIndex = 0;
-    public int DamagedHP;
+    private int damagedHP;
     public int HP;
     public List<StateSO> Nodes;
     public List<Vector3> alertPatrolPoints;
     public List<Vector3> originPatrolPoints;
     public List<Vector3> patrolForwards = new() { new Vector3(0, -0.15f, 0.707f).normalized, new Vector3(0, -0.15f, -0.707f).normalized, new Vector3(-0.707f, -0.15f, 0).normalized, new Vector3(0.707f, -0.15f, 0).normalized, };
-    public Player target;
+    public PCController target;
     public RaycastHit controlRay;
     public StateSO currentNode;
     public Vector3 lastPlayerPosition;
@@ -47,7 +109,6 @@ public class EnemyController : MonoBehaviour
                 }
             }
         }
-        ShufflePoints(route);
     }
 
     public void Attack()
@@ -71,12 +132,11 @@ public class EnemyController : MonoBehaviour
             if (currentAttackTime < 0)
             {
                 OnAttackRange = false;
-                //while currentAttackTime is greatter than 0 the enemy cannot move
-                //it to trigger chase state while attack is on cooldown
-                CheckEndingConditions();
             }
             yield return null;
         }
+
+        CanAttack = true;
     }
 
     protected IEnumerator Alert()
@@ -86,12 +146,8 @@ public class EnemyController : MonoBehaviour
             remainingAlertTime -= Time.deltaTime;
             yield return null;
         }
-        onAlert = false;
+        OnAlert = false;
 
-        // it to trigger idle
-        CheckEndingConditions();
-
-        //desactive corroutine for next alert state 
         Desalert();
     }
 
@@ -111,13 +167,13 @@ public class EnemyController : MonoBehaviour
     {
         GetPatrolRoute(originPatrolPoints, transform.position);
     }
-    void ShufflePoints(List<Vector3> list)
+    public void ShufflePoints(List<Vector3> list)
     {
         int n = list.Count;
         while (n > 1)
         {
             n--;
-            int k = UnityEngine.Random.Range(0, n + 1);
+            int k = Random.Range(0, n + 1);
             Vector3 value = list[k];
             list[k] = list[n];
             list[n] = value;
@@ -133,19 +189,14 @@ public class EnemyController : MonoBehaviour
 
             Debug.DrawRay(transform.position, direccion, Color.yellow);
 
-            OnRange = true;
-            onAlert = false;
-            CheckEndingConditions();
-
             lastPlayerPosition = new(target.transform.position.x, transform.position.y, target.transform.position.z);
+            OnRange = true;
+            OnAlert = false;
+
         }
         else
         {
-
             OnRange = false;
-
-            GoLastPoint();
-
         }
 
     }
@@ -154,19 +205,13 @@ public class EnemyController : MonoBehaviour
     {
         if (collision.gameObject == target.gameObject)
         {
-
             OnAttackRange = true;
-            //To active attack
-            CheckEndingConditions();
         }
 
     }
     public void OCollisionExit(Collision collision)
     {
         OnAttackRange = false;
-        //To active chase
-        CheckEndingConditions();
-
     }
 
     public void OnTriggerStay(Collider other)
@@ -174,6 +219,7 @@ public class EnemyController : MonoBehaviour
         if (other.gameObject == target.gameObject)
         {
             CheckRange();
+            CheckEndingConditions();
         }
     }
 
@@ -182,27 +228,16 @@ public class EnemyController : MonoBehaviour
         if (other.gameObject == target.gameObject)
         {
             OnRange = false;
-            GoLastPoint();
-            //To active alert, idle is not possible
-            CheckEndingConditions();
+
         }
     }
     public void GoLastPoint()
     {
-        //goes to last known position of the player
-
         if (lastPlayerPosition != Vector3.zero)
         {
             //counter for alert time
             remainingAlertTime = alertTime;
-            onAlert = true;
-
-            //lastPlayerPosition != Vector3.zero for an unknown reason doesn't work properly 
-            //this can prevent previus bug
-            CheckEndingConditions();
-            //without this the enemy will chase the player even he is not hitted by raycast
-            //it still works if player leaves the detection area.
-
+            OnAlert = true;
         }
     }
     private void Update()

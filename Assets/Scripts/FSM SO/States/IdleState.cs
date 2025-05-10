@@ -10,6 +10,7 @@ public class IdleState : StateSO
         {
             ec.currentPointIndex = 0;
             ec.GetPatrolRoute(ec.originPatrolPoints, ec.transform.position);
+            ec.ShufflePoints(ec.originPatrolPoints);
         }
     }
 
