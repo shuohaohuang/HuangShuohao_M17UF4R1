@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8810eabab3347c4eae1cbf0c53ae89d, type: 3}
   m_Name: CanAttackState
   m_EditorClassIdentifier: 
-  StartCondition: {fileID: 0}
-  EndConditions: []
+  StartCondition: {fileID: 11400000, guid: ce7f949247245ec42bc89f78347d7063, type: 2}
+  EndConditions:
+  - {fileID: 11400000, guid: c9cc9115fce557a4e8a8a8629aa76bf9, type: 2}
