@@ -1,15 +1,16 @@
-
-
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
-
+using UnityEngine.UIElements;
 
 public class EnemyController : MonoBehaviour
 {
-
     [SerializeField]
-    private bool onAlert, canAttack, onAttackRange, onVisionRange, onCooldown;
+    private bool onAlert,
+        canAttack,
+        onAttackRange,
+        onVisionRange,
+        onCooldown;
     public bool OnAlert
     {
         get => onAlert;
@@ -70,6 +71,8 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    public Animator animator;
+
     public ChaseBehaviour movementBehavior;
     public Coroutine alertCoroutine;
     public float alertTime;
@@ -77,7 +80,8 @@ public class EnemyController : MonoBehaviour
     public float cd;
     public float currentAttackTime;
     public float currentCd;
-    public float maxPatrolDistance = 10;
+    public float maxPatrolDistance = 20;
+    public float attackRange;
     public float remainingAlertTime;
     public int currentPointIndex = 0;
     private int damagedHP;
@@ -85,7 +89,14 @@ public class EnemyController : MonoBehaviour
     public List<StateSO> Nodes;
     public List<Vector3> alertPatrolPoints;
     public List<Vector3> originPatrolPoints;
-    public List<Vector3> patrolForwards = new() { new Vector3(0, -0.15f, 0.707f).normalized, new Vector3(0, -0.15f, -0.707f).normalized, new Vector3(-0.707f, -0.15f, 0).normalized, new Vector3(0.707f, -0.15f, 0).normalized, };
+    public List<Vector3> patrolForwards =
+        new()
+        {
+            new Vector3(0, -2.430758f, 0.707f).normalized,
+            new Vector3(0, -2.430758f, -0.707f).normalized,
+            new Vector3(-0.707f, -2.430758f, 0).normalized,
+            new Vector3(0.707f, -2.430758f, 0).normalized,
+        };
     public PCController target;
     public RaycastHit controlRay;
     public StateSO currentNode;
@@ -101,7 +112,14 @@ public class EnemyController : MonoBehaviour
         {
             Vector3 direction = forward.normalized;
 
-            if (Physics.Raycast(startPoint, direction, out controlRay, maxPatrolDistance))
+            if (
+                Physics.Raycast(
+                    startPoint,
+                    direction * maxPatrolDistance,
+                    out controlRay,
+                    maxPatrolDistance
+                )
+            )
             {
                 if (controlRay.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
                 {
@@ -115,7 +133,25 @@ public class EnemyController : MonoBehaviour
     {
         if (currentCd <= 0)
         {
+            animator.SetTrigger("attack");
             StartCoroutine(Cooldown());
+        }
+    }
+
+    public void HurtTarget()
+    {
+        Vector3 direccion = target.transform.position - transform.position;
+
+        //It is also compared with Ground because the raycast bugs with the attack state
+        if (
+            Physics.Raycast(transform.position, direccion, out controlRay)
+            && (
+                Equals(controlRay.collider.gameObject, target.gameObject)
+                || controlRay.collider.gameObject.layer == LayerMask.NameToLayer("Ground")
+            )
+            && direccion.magnitude < attackRange + 1f
+        )
+        {
             target.OnHurt(1);
         }
     }
@@ -167,6 +203,7 @@ public class EnemyController : MonoBehaviour
     {
         GetPatrolRoute(originPatrolPoints, transform.position);
     }
+
     public void ShufflePoints(List<Vector3> list)
     {
         int n = list.Count;
@@ -179,39 +216,49 @@ public class EnemyController : MonoBehaviour
             list[n] = value;
         }
     }
+
     private void CheckRange()
     {
         Vector3 direccion = target.transform.position - transform.position;
 
         //It is also compared with Ground because the raycast bugs with the attack state
-        if (Physics.Raycast(transform.position, direccion, out controlRay) && (Equals(controlRay.collider.gameObject, target.gameObject) || controlRay.collider.gameObject.layer == LayerMask.NameToLayer("Ground")))
+        if (
+            Physics.Raycast(transform.position, direccion, out controlRay)
+            && (
+                Equals(controlRay.collider.gameObject, target.gameObject)
+                || controlRay.collider.gameObject.layer == LayerMask.NameToLayer("Ground")
+            )
+        )
         {
+            lastPlayerPosition = new(
+                target.transform.position.x,
+                transform.position.y,
+                target.transform.position.z
+            );
 
-            Debug.DrawRay(transform.position, direccion, Color.yellow);
-
-            lastPlayerPosition = new(target.transform.position.x, transform.position.y, target.transform.position.z);
             OnRange = true;
             OnAlert = false;
 
+            if (controlRay.distance < attackRange)
+            {
+                OnAttackRange = true;
+            }
+            else
+            {
+                OnAttackRange = false;
+            }
         }
         else
         {
             OnRange = false;
         }
-
+        Color color = OnAttackRange ? Color.green : Color.red;
+        Debug.DrawLine(transform.position, target.transform.position, color, 0.1f);
     }
 
     public void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject == target.gameObject)
-        {
-            OnAttackRange = true;
-        }
-
-    }
-    public void OCollisionExit(Collision collision)
-    {
-        OnAttackRange = false;
+        if (collision.gameObject == target.gameObject) { }
     }
 
     public void OnTriggerStay(Collider other)
@@ -228,9 +275,9 @@ public class EnemyController : MonoBehaviour
         if (other.gameObject == target.gameObject)
         {
             OnRange = false;
-
         }
     }
+
     public void GoLastPoint()
     {
         if (lastPlayerPosition != Vector3.zero)
@@ -240,6 +287,7 @@ public class EnemyController : MonoBehaviour
             OnAlert = true;
         }
     }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
@@ -250,6 +298,7 @@ public class EnemyController : MonoBehaviour
 
         currentNode.OnStateUpdate(this);
     }
+
     public void CheckEndingConditions()
     {
         foreach (ConditionSO condition in currentNode.EndConditions)
@@ -258,6 +307,7 @@ public class EnemyController : MonoBehaviour
                 ExitCurrentNode();
             }
     }
+
     public void ExitCurrentNode()
     {
         foreach (StateSO stateSO in Nodes)
@@ -278,6 +328,7 @@ public class EnemyController : MonoBehaviour
         }
         currentNode.OnStateEnter(this);
     }
+
     private void EnterNewState(StateSO state)
     {
         currentNode.OnStateExit(this);

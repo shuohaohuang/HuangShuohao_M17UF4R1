@@ -16,11 +16,13 @@ public class ChaseBehaviour : MonoBehaviour
         agent.acceleration = 20f;
         agent.autoBraking = false;
     }
+
     public void Chase(Transform target, Transform self)
     {
         agent.isStopped = false;
         agent.SetDestination(new(target.position.x, self.position.y, target.position.z));
     }
+
     public void Run(Transform target, Transform self)
     {
         agent.isStopped = false;
@@ -30,17 +32,17 @@ public class ChaseBehaviour : MonoBehaviour
         Vector3 runPoint = self.position + runDirection * 1;
 
         agent.SetDestination(runPoint);
-
     }
 
     public void GoTo(Vector3 position, Transform self)
     {
         agent.isStopped = false;
         agent.SetDestination(new(position.x, self.position.y, position.z));
+        Debug.Log(agent.isStopped);
     }
+
     public void StopChasing()
     {
         agent.isStopped = true;
-
     }
 }

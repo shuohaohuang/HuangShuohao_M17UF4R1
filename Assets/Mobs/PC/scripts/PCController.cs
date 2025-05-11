@@ -7,16 +7,17 @@ public class PCController : MonoBehaviour, InputSystem_Actions.IPlayerActions, I
     public PC PC;
     private InputSystem_Actions inputs;
 
-    public void OnAttack(InputAction.CallbackContext context)
-    {
-
-    }
+    public void OnAttack(InputAction.CallbackContext context) { }
 
     public void OnLook(InputAction.CallbackContext context)
     {
         if (context.performed)
         {
             PC.MoveCam(context.ReadValue<Vector2>());
+        }
+        if (context.canceled)
+        {
+            PC.MoveCam(new(0, 0));
         }
     }
 
@@ -31,8 +32,8 @@ public class PCController : MonoBehaviour, InputSystem_Actions.IPlayerActions, I
         {
             PC.MoveDirection = context.ReadValue<Vector2>();
         }
-
     }
+
     void Awake()
     {
         inputs = new();
@@ -51,7 +52,7 @@ public class PCController : MonoBehaviour, InputSystem_Actions.IPlayerActions, I
 
     public void OnHurt(float damage)
     {
-        PC.hp -= damage;
+        PC.Hp -= damage;
     }
 
     public void OnRun(InputAction.CallbackContext context)
@@ -77,11 +78,15 @@ public class PCController : MonoBehaviour, InputSystem_Actions.IPlayerActions, I
         if (context.performed)
         {
             PC.Dance();
+            enabled = false;
         }
     }
 
     public void OnAim(InputAction.CallbackContext context)
     {
-        throw new System.NotImplementedException();
+        if (context.performed || context.canceled)
+        {
+            PC.Aim();
+        }
     }
 }

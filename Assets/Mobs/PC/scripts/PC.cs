@@ -1,30 +1,42 @@
 using Unity.Cinemachine;
 using UnityEngine;
+
 public class PC : MonoBehaviour
 {
+    [SerializeField]
+    private bool canRun = false;
 
-    [SerializeField] private bool canRun = false;
-    [SerializeField] private bool isOnFloor;
-    [SerializeField] private bool isRunning = false;
-    [SerializeField] private float currentSpeed;
-    [SerializeField] private Vector2 moveDirection = Vector2.zero;
+    [SerializeField]
+    private bool isOnFloor;
+
+    [SerializeField]
+    private bool isRunning = false;
+
+    [SerializeField]
+    private float currentSpeed;
+
+    [SerializeField]
+    private Vector2 moveDirection = Vector2.zero;
     public Animator animator;
     public bool falling;
-    public float hp = 100000;
+
+    [SerializeField]
+    private float hp = 100000;
     public float jumpForce;
     public float runSpeed;
     public float walkSpeed;
     public Rigidbody rb;
-    public CinemachineFreeLook cinemachineCamera;
+    public PcRotation pcRotation;
+    public PCCamara pCCamara;
+    public PCController pCController;
+    public Collider _collider;
     public float verticalRotation = 0f;
     public float CurrentSpeed
     {
         get => currentSpeed;
-        set
-        {
-            currentSpeed = value;
-        }
+        set { currentSpeed = value; }
     }
+
     public bool IsRunning
     {
         get => isRunning;
@@ -36,7 +48,6 @@ public class PC : MonoBehaviour
                 currentSpeed *= 2f;
             else
                 currentSpeed /= 2f;
-
         }
     }
     public Vector2 MoveDirection
@@ -47,7 +58,11 @@ public class PC : MonoBehaviour
             moveDirection = value;
 
             bool hasMoved = moveDirection != Vector2.zero;
-            CurrentSpeed = hasMoved ? walkSpeed : 0;
+            CurrentSpeed = hasMoved
+                ? isRunning
+                    ? CurrentSpeed
+                    : walkSpeed
+                : 0;
 
             animator.SetBool("walk", hasMoved);
 
@@ -59,9 +74,8 @@ public class PC : MonoBehaviour
             }
             else
             {
-                currentSpeed = 0;
+                CurrentSpeed = 0;
             }
-
         }
     }
 
@@ -75,10 +89,29 @@ public class PC : MonoBehaviour
                 animator.SetTrigger("getGround");
         }
     }
+
+    public float Hp
+    {
+        get => hp;
+        set
+        {
+            hp = value;
+            if (hp <= 0 && enabled)
+            {
+                animator.SetTrigger("die");
+                transform.Rotate(new(0, -90, 0));
+                enabled = false;
+                pCController.enabled = false;
+            }
+        }
+    }
+
     public void Dance()
     {
         animator.SetTrigger("dance");
+        pCCamara.Dance();
     }
+
     public void Jump()
     {
         if (isOnFloor)
@@ -87,61 +120,69 @@ public class PC : MonoBehaviour
 
             rb.AddForce(new(0, jumpForce * 10, 0));
             IsOnFloor = false;
-
         }
     }
-    public void Fall()
-    {
-        animator.SetTrigger("fall");
 
-    }
     public void MoveCam(Vector2 mouse)
     {
-
-        float mouseX = mouse.x * 1 * Time.deltaTime;
-        float mouseY = mouse.y * 1 * Time.deltaTime;
-        verticalRotation -= mouseY;
-        verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
-
-        transform.rotation = Quaternion.Euler(verticalRotation, 0f, mouseX);
-        cinemachineCamera.m_XAxis.Value += mouse.x * 1 * Time.deltaTime;
-        // cuerpoJugador.Rotate(Vector3.up * mouseX);
+        pcRotation.mouse = mouse;
     }
+
+    public void Aim()
+    {
+        pCCamara.SwitchCam();
+        animator.SetBool("aim", pCCamara.active == 0);
+    }
+
     public void FixedUpdate()
     {
-        rb.MovePosition(transform.position + new Vector3(moveDirection.x, 0, moveDirection.y).normalized * currentSpeed);
+        Vector3 move = transform.forward * moveDirection.y + transform.right * moveDirection.x;
 
-    }
-    void Update()
-    {
+        rb.MovePosition(transform.position + move.normalized * currentSpeed);
+
         if (rb.linearVelocity.y < 1)
         {
-
-            if (Physics.Raycast(transform.position, new Vector3(0, -1, 0), out RaycastHit controlRay2, 1.3f))
+            if (
+                Physics.Raycast(
+                    transform.position,
+                    new Vector3(0, -1, 0),
+                    out RaycastHit controlRay2,
+                    1.3f
+                )
+            )
             {
-
-
-                if (!IsOnFloor && controlRay2.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
+                if (
+                    !IsOnFloor
+                    && controlRay2.collider.gameObject.layer == LayerMask.NameToLayer("Ground")
+                )
                 {
-                    animator.SetTrigger("getGround");
-                    isOnFloor = true;
+                    animator.SetBool("getGround", true);
                 }
-                else
-                {
-                    Fall();
-
-                    animator.SetBool("grounded", false);
-                }
+            }
+            else
+            {
+                animator.SetTrigger("fall");
             }
         }
     }
+
+    void Update() { }
 
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
             animator.SetBool("grounded", true);
+            isOnFloor = true;
         }
     }
 
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        {
+            animator.SetBool("getGround", false);
+            animator.SetBool("grounded", false);
+        }
+    }
 }
